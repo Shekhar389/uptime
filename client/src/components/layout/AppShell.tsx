@@ -4,11 +4,11 @@ import { Header } from './Header';
 
 export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   return (
-    <div style={{ display: 'flex', minHeight: '100vh', width: '100vw' }}>
+    <div className="flex min-h-screen w-screen bg-zinc-950 text-zinc-100 font-sans antialiased selection:bg-zinc-800">
       <Sidebar />
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+      <div className="flex-1 flex flex-col min-w-0">
         <Header />
-        <main style={{ flex: 1, padding: '24px', backgroundColor: '#0b0f17' }}>{children}</main>
+        <main className="flex-1 p-6 bg-zinc-950 overflow-y-auto">{children}</main>
       </div>
     </div>
   );

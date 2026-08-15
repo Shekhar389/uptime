@@ -1,33 +1,76 @@
 import React from 'react';
-import { Button } from '../../components/ui';
+import { Button, Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter, Badge, Separator } from '../../components/ui';
+import { useAppDispatch, useAppSelector } from '../../store/hooks';
+import { selectPlan } from '../../store/slices/billingSlice';
+import { CreditCard, Check } from 'lucide-react';
 
 export const SubscriptionPicker: React.FC = () => {
+  const dispatch = useAppDispatch();
+  const { plans, currentPlanId } = useAppSelector((state) => state.billing);
+
   return (
-    <div>
-      <h1 style={{ fontSize: '24px', fontWeight: 700, marginBottom: '8px' }}>Billing & Plans</h1>
-      <p style={{ color: '#9ca3af', marginBottom: '24px' }}>Choose a subscription plan matching your scale</p>
-      
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '24px' }}>
-        <div style={{ backgroundColor: '#151c28', padding: '24px', borderRadius: '8px', border: '1px solid #232d3f' }}>
-          <h2 style={{ fontSize: '18px', fontWeight: 600 }}>Free</h2>
-          <div style={{ fontSize: '28px', fontWeight: 700, margin: '16px 0' }}>$0 / mo</div>
-          <p style={{ color: '#9ca3af', fontSize: '14px', marginBottom: '20px' }}>Up to 5 Monitors, 60s ping interval</p>
-          <Button variant="secondary" style={{ width: '100%', justifyContent: 'center' }}>Current Plan</Button>
-        </div>
+    <div className="space-y-6">
+      <div>
+        <h1 className="text-2xl font-bold text-white tracking-tight flex items-center gap-2">
+          <CreditCard className="text-emerald-400" size={26} /> Subscription & Quota Limits
+        </h1>
+        <p className="text-slate-400 text-sm mt-1">
+          Select a subscription tier that scales with your uptime frequency & monitor quota.
+        </p>
+      </div>
 
-        <div style={{ backgroundColor: '#151c28', padding: '24px', borderRadius: '8px', border: '1px solid #10b981' }}>
-          <h2 style={{ fontSize: '18px', fontWeight: 600, color: '#10b981' }}>Pro</h2>
-          <div style={{ fontSize: '28px', fontWeight: 700, margin: '16px 0' }}>$29 / mo</div>
-          <p style={{ color: '#9ca3af', fontSize: '14px', marginBottom: '20px' }}>Up to 50 Monitors, 10s ping interval</p>
-          <Button variant="primary" style={{ width: '100%', justifyContent: 'center' }}>Upgrade to Pro</Button>
-        </div>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {plans.map((plan) => {
+          const isSelected = currentPlanId === plan.id;
+          return (
+            <Card
+              key={plan.id}
+              className={`bg-slate-900/90 border flex flex-col justify-between transition-all ${
+                isSelected ? 'border-emerald-500 ring-1 ring-emerald-500/50 shadow-lg' : 'border-slate-800'
+              }`}
+            >
+              <CardHeader>
+                <div className="flex justify-between items-center">
+                  <CardTitle className="text-lg font-bold text-white">{plan.name}</CardTitle>
+                  {isSelected && (
+                    <Badge variant="default" className="bg-emerald-500/10 text-emerald-400 border-emerald-500/20">
+                      Active
+                    </Badge>
+                  )}
+                </div>
+                <CardDescription className="text-xs text-slate-400 mt-1">
+                  Up to {plan.monitorsLimit} monitors with {plan.pingFrequencySeconds}s ping intervals.
+                </CardDescription>
+                <div className="text-3xl font-extrabold text-white pt-3">
+                  ${plan.priceMonthly}
+                  <span className="text-sm font-normal text-slate-400">/mo</span>
+                </div>
+              </CardHeader>
 
-        <div style={{ backgroundColor: '#151c28', padding: '24px', borderRadius: '8px', border: '1px solid #232d3f' }}>
-          <h2 style={{ fontSize: '18px', fontWeight: 600 }}>Enterprise</h2>
-          <div style={{ fontSize: '28px', fontWeight: 700, margin: '16px 0' }}>Custom</div>
-          <p style={{ color: '#9ca3af', fontSize: '14px', marginBottom: '20px' }}>Unlimited Monitors, 5s interval, custom SLAs</p>
-          <Button variant="secondary" style={{ width: '100%', justifyContent: 'center' }}>Contact Sales</Button>
-        </div>
+              <CardContent className="space-y-3">
+                <Separator className="bg-slate-800 my-2" />
+                <ul className="space-y-2.5 text-sm text-slate-300">
+                  {plan.features.map((f, i) => (
+                    <li key={i} className="flex items-center gap-2">
+                      <Check size={16} className="text-emerald-400" />
+                      <span>{f}</span>
+                    </li>
+                  ))}
+                </ul>
+              </CardContent>
+
+              <CardFooter>
+                <Button
+                  variant={isSelected ? 'default' : 'outline'}
+                  className={`w-full ${isSelected ? 'bg-emerald-600 hover:bg-emerald-500 text-white' : ''}`}
+                  onClick={() => dispatch(selectPlan(plan.id))}
+                >
+                  {isSelected ? 'Current Active Plan' : `Switch to ${plan.name}`}
+                </Button>
+              </CardFooter>
+            </Card>
+          );
+        })}
       </div>
     </div>
   );

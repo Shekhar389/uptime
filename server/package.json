@@ -7,13 +7,25 @@
     "dev": "tsx watch src/api/server.ts",
     "build": "tsc",
     "start": "node dist/api/server.js",
-    "test": "node --test",
-    "seed": "tsx src/infrastructure/db/postgres/seed.ts"
+    "test": "jest",
+    "lint": "oxlint .",
+    "format": "prettier --write .",
+    "seed": "tsx src/infrastructure/db/postgres/seed.ts",
+    "prisma:generate": "prisma generate",
+    "prisma:migrate": "prisma migrate dev",
+    "prisma:deploy": "prisma migrate deploy",
+    "prisma:studio": "prisma studio",
+    "postinstall": "prisma generate"
   },
   "dependencies": {
     "@clickhouse/client": "^1.11.0",
     "@fastify/cors": "^10.0.2",
+    "@fastify/helmet": "^13.1.0",
+    "@fastify/rate-limit": "^11.2.0",
     "@fastify/sensible": "^6.0.2",
+    "@prisma/client": "^6.19.3",
+    "axios": "^1.19.0",
+    "dotenv": "^17.4.2",
     "fastify": "^5.2.1",
     "pg": "^8.13.1",
     "pino": "^9.6.0",
@@ -21,8 +33,14 @@
     "zod": "^3.24.2"
   },
   "devDependencies": {
+    "@types/jest": "^30.0.0",
     "@types/node": "^22.13.4",
     "@types/pg": "^8.11.11",
+    "jest": "^30.4.2",
+    "oxlint": "^1.78.0",
+    "prettier": "^3.9.6",
+    "prisma": "^6.19.3",
+    "ts-jest": "^29.4.12",
     "tsx": "^4.19.3",
     "typescript": "^5.7.3"
   }

@@ -1,30 +1,34 @@
-import pg from 'pg';
-import { env } from '../../../config/env.js';
+import { PrismaClient } from '@prisma/client';
 import { createComponentLogger } from '../../logger/index.js';
 
 const log = createComponentLogger('postgres');
 
-const { Pool } = pg;
+export const prisma = new PrismaClient();
 
-export const postgresPool = new Pool({
-  connectionString: env.POSTGRES_URL,
-  max: 20,
-  idleTimeoutMillis: 30000,
-  connectionTimeoutMillis: 2000,
-});
-
-postgresPool.on('error', (err) => {
-  log.error({ err }, 'Unexpected error on idle PostgreSQL client');
-});
+// Common DB pool & setup area to avoid invoking raw Prisma boilerplate in every line
+export const db = {
+  teams: prisma.team,
+  users: prisma.user,
+  monitors: prisma.monitor,
+  incidents: prisma.incident,
+  $transaction: prisma.$transaction.bind(prisma),
+  $queryRaw: prisma.$queryRaw.bind(prisma),
+  $executeRaw: prisma.$executeRaw.bind(prisma),
+};
 
 export const checkPostgresHealth = async (): Promise<boolean> => {
   try {
-    const client = await postgresPool.connect();
-    await client.query('SELECT 1');
-    client.release();
+    await prisma.$queryRaw`SELECT 1`;
     return true;
   } catch (err) {
     log.error({ err }, 'PostgreSQL health check failed');
     return false;
   }
 };
+
+export const disconnectPostgres = async (): Promise<void> => {
+  await prisma.$disconnect();
+};
+
+export type { User, Team, Monitor, Incident } from '@prisma/client';
+

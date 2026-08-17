@@ -1,4 +1,3 @@
-import { StatusPageDTO } from './types.js';
 import { generateStatusHtml } from './internal/generator.js';
 import { verifyCustomDomain } from './internal/domain-verifier.js';
 

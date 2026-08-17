@@ -6,7 +6,7 @@
 - **Styling**: Tailwind CSS + Shadcn HSL CSS theme variables (`src/index.css`) + `cn` helper (`src/lib/utils.ts`).
 - **App Shell & Routing**: `src/components/layout/AppShell.tsx` + React Router v7 (`src/router/`).
 - **Package Manager**: `pnpm` exclusively across all commands and package management.
-- **Code Quality**: ESLint + Prettier + Vitest (`happy-dom`).
+- **Code Quality**: oxlint + Prettier + Vitest (`happy-dom`).
 
 ## State & API Conventions
 - **Global App State**: Managed via **Redux Toolkit** slices (`src/store/slices/{auth, uptime, incidents, billing}Slice.ts`) with typed hooks (`useAppDispatch`, `useAppSelector` in `src/store/hooks.ts`).

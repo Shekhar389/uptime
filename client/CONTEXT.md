@@ -1,19 +1,19 @@
 # Frontend App Context
 
 ## Architecture & Tooling Stack
-- **Framework & Compiler**: React 19 + Babel React Compiler + Vite + TypeScript (Strict).
-- **Design System & Component Library**: Official **Shadcn UI** primitives initialized via `pnpm dlx shadcn@latest` (`components.json`) in `src/components/ui/` (`Card`, `Table`, `Badge`, `Button`, `Input`, `Dialog`, `Select`, `DropdownMenu`, `Tabs`, `Avatar`, `Separator`).
-- **Styling**: Tailwind CSS + Shadcn HSL CSS theme variables (`src/index.css`) + `cn` helper (`src/lib/utils.ts`).
-- **App Shell & Routing**: `src/components/layout/AppShell.tsx` + React Router v7 (`src/router/`).
+- **Framework & Compiler**: Nuxt 3 (SPA mode, `ssr: false`) + Vue 3 + Vite + TypeScript (Strict).
+- **Design System & Component Library**: **Nuxt UI** (`@nuxt/ui`) components (`<UButton>`, `<UCard>`, `<UTable>`, `<UModal>`, `<UBadge>`, `<USelect>`, `<UTabs>`, `<UInput>`, `<UForm>`).
+- **Styling**: Tailwind CSS + Nuxt UI design tokens configured in `app.config.ts`.
+- **App Shell & Routing**: Nuxt file-based routing (`pages/`) with layout templates (`layouts/default.vue`, `layouts/auth.vue`).
 - **Package Manager**: `pnpm` exclusively across all commands and package management.
-- **Code Quality**: oxlint + Prettier + Vitest (`happy-dom`).
+- **Code Quality**: oxlint + Prettier + Vitest with `@nuxt/test-utils`.
 
 ## State & API Conventions
-- **Global App State**: Managed via **Redux Toolkit** slices (`src/store/slices/{auth, uptime, incidents, billing}Slice.ts`) with typed hooks (`useAppDispatch`, `useAppSelector` in `src/store/hooks.ts`).
-- **API Client Seam**: Centralized **Axios** instance (`src/api/axios.ts` / `src/api/client.ts`) with request interceptors for injecting `Authorization: Bearer <token>` and `X-Team-ID` headers, and response interceptors for standardized error handling.
-- **Form & Validation Seams**: React Hook Form + **Zod** schema validation (`src/features/*/schemas.ts`) with `@hookform/resolvers/zod`.
+- **Global App State**: Managed via **Pinia** stores (`stores/{auth, uptime, incidents, billing}.ts`) with Nuxt auto-imports.
+- **API Client Seam**: Centralized `$fetch` wrapper composable (`composables/useApiClient.ts`) with request interceptors for injecting `Authorization: Bearer <token>` and `X-Team-ID` headers, and response interceptors for error handling.
+- **Form & Validation Seams**: Nuxt UI `<UForm>` + **Zod** schema validation (`utils/schemas/*.ts` or feature schemas) with native `<UForm :schema="schema">`.
 
 ## Directory Isolation & Deep Modules
-- **Feature Modules**: Organized by domain under `src/features/{auth, uptime, incidents, status-pages, logs, billing}`.
-- **Official Shadcn UI Primitives**: Built strictly in `src/components/ui/` using `@radix-ui/react-*` and `class-variance-authority`.
-- **Tests**: Located alongside modules under `__tests__/` and verified using Vitest (`pnpm --filter client test`).
+- **File-Based Routing**: Pages under `pages/`, shared layouts under `layouts/`, and route guards under `middleware/`.
+- **Composables & Stores**: Domain logic contained within auto-imported `composables/` and `stores/`.
+- **Tests**: Verified using Vitest + `@nuxt/test-utils` (`pnpm --filter client test`).

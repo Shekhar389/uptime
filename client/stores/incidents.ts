@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia';
 import { ref } from 'vue';
+import { useApiClient } from '~/composables/useApiClient';
 
 export interface Incident {
   id: string;
@@ -32,6 +33,22 @@ export const useIncidentsStore = defineStore('incidents', () => {
   const loading = ref(false);
   const error = ref<string | null>(null);
 
+  async function fetchIncidents() {
+    loading.value = true;
+    error.value = null;
+    try {
+      const api = useApiClient();
+      const data = await api<Incident[]>('/incidents');
+      if (Array.isArray(data)) {
+        incidents.value = data;
+      }
+    } catch (err: any) {
+      error.value = err.message || 'Failed to fetch incidents';
+    } finally {
+      loading.value = false;
+    }
+  }
+
   function addIncident(data: Omit<Incident, 'id' | 'createdAt'>) {
     const newInc: Incident = {
       ...data,
@@ -52,6 +69,7 @@ export const useIncidentsStore = defineStore('incidents', () => {
     incidents,
     loading,
     error,
+    fetchIncidents,
     addIncident,
     updateIncidentStatus,
   };

@@ -36,7 +36,7 @@
       <template #footer>
         <div class="flex justify-between items-center pt-2">
           <a
-            href="http://localhost:3001/api/v1/status-pages"
+            :href="statusPageEndpoint"
             target="_blank"
             rel="noreferrer"
             class="inline-flex items-center gap-1.5 text-xs text-emerald-400 hover:underline font-medium"
@@ -53,4 +53,6 @@
 </template>
 
 <script setup lang="ts">
+const baseUrl = import.meta.env.VITE_API_BASE_URL || '/api';
+const statusPageEndpoint = computed(() => `${baseUrl}/v1/status-pages`);
 </script>

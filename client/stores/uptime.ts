@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia';
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
+import { useApiClient } from '~/composables/useApiClient';
 
 export interface Monitor {
   id: string;
@@ -55,6 +56,26 @@ export const useUptimeStore = defineStore('uptime', () => {
   const loading = ref(false);
   const error = ref<string | null>(null);
 
+  const totalUp = computed(() => monitors.value.filter((m) => m.status === 'up').length);
+  const totalDegraded = computed(() => monitors.value.filter((m) => m.status === 'degraded').length);
+  const totalDown = computed(() => monitors.value.filter((m) => m.status === 'down').length);
+
+  async function fetchMonitors() {
+    loading.value = true;
+    error.value = null;
+    try {
+      const api = useApiClient();
+      const data = await api<Monitor[]>('/monitors');
+      if (Array.isArray(data)) {
+        monitors.value = data;
+      }
+    } catch (err: any) {
+      error.value = err.message || 'Failed to fetch monitors';
+    } finally {
+      loading.value = false;
+    }
+  }
+
   function setMonitors(data: Monitor[]) {
     monitors.value = data;
   }
@@ -93,6 +114,10 @@ export const useUptimeStore = defineStore('uptime', () => {
     selectedMonitorId,
     loading,
     error,
+    totalUp,
+    totalDegraded,
+    totalDown,
+    fetchMonitors,
     setMonitors,
     addMonitor,
     updateMonitor,

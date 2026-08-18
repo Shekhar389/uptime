@@ -81,7 +81,7 @@
           <span class="text-xs font-medium text-zinc-400 uppercase tracking-wider">Healthy (Up)</span>
           <UIcon name="i-heroicons-shield-check" class="h-4 w-4 text-zinc-100" />
         </div>
-        <div class="text-2xl font-bold text-zinc-100 font-mono mt-2">{{ totalUp }}</div>
+        <div class="text-2xl font-bold text-zinc-100 font-mono mt-2">{{ uptimeStore.totalUp }}</div>
         <p class="text-[11px] text-zinc-500 mt-1">Passing checks</p>
       </UCard>
 
@@ -90,7 +90,7 @@
           <span class="text-xs font-medium text-zinc-400 uppercase tracking-wider">Degraded</span>
           <UIcon name="i-heroicons-clock" class="h-4 w-4 text-zinc-400" />
         </div>
-        <div class="text-2xl font-bold text-zinc-300 font-mono mt-2">{{ totalDegraded }}</div>
+        <div class="text-2xl font-bold text-zinc-300 font-mono mt-2">{{ uptimeStore.totalDegraded }}</div>
         <p class="text-[11px] text-zinc-500 mt-1">High response latency</p>
       </UCard>
 
@@ -99,7 +99,7 @@
           <span class="text-xs font-medium text-zinc-400 uppercase tracking-wider">Outages (Down)</span>
           <UIcon name="i-heroicons-chart-bar" class="h-4 w-4 text-zinc-500" />
         </div>
-        <div class="text-2xl font-bold text-zinc-400 font-mono mt-2">{{ totalDown }}</div>
+        <div class="text-2xl font-bold text-zinc-400 font-mono mt-2">{{ uptimeStore.totalDown }}</div>
         <p class="text-[11px] text-zinc-500 mt-1">HTTP errors reported</p>
       </UCard>
     </div>
@@ -127,7 +127,7 @@
               :class="uptimeStore.filter === 'up' ? 'bg-zinc-800 text-white' : 'text-zinc-400'"
               @click="uptimeStore.setFilter('up')"
             >
-              Up ({{ totalUp }})
+              Up ({{ uptimeStore.totalUp }})
             </UButton>
             <UButton
               size="xs"
@@ -135,7 +135,7 @@
               :class="uptimeStore.filter === 'down' ? 'bg-zinc-800 text-white' : 'text-zinc-400'"
               @click="uptimeStore.setFilter('down')"
             >
-              Down ({{ totalDown }})
+              Down ({{ uptimeStore.totalDown }})
             </UButton>
           </div>
         </div>
@@ -213,10 +213,6 @@ const filteredMonitors = computed(() => {
   if (uptimeStore.filter === 'all') return uptimeStore.monitors;
   return uptimeStore.monitors.filter((m) => m.status === uptimeStore.filter);
 });
-
-const totalUp = computed(() => uptimeStore.monitors.filter((m) => m.status === 'up').length);
-const totalDegraded = computed(() => uptimeStore.monitors.filter((m) => m.status === 'degraded').length);
-const totalDown = computed(() => uptimeStore.monitors.filter((m) => m.status === 'down').length);
 
 const onSubmit = () => {
   uptimeStore.addMonitor({ ...state });

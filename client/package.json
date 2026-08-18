@@ -9,6 +9,7 @@
     "generate": "NUXT_TELEMETRY_DISABLED=1 nuxt generate",
     "preview": "NUXT_TELEMETRY_DISABLED=1 nuxt preview",
     "postinstall": "NUXT_TELEMETRY_DISABLED=1 nuxt prepare",
+    "typecheck": "NUXT_TELEMETRY_DISABLED=1 nuxt typecheck",
     "test": "vitest run",
     "test:watch": "vitest",
     "lint": "oxlint .",
@@ -32,6 +33,7 @@
     "oxlint": "^1.78.0",
     "prettier": "^3.9.6",
     "typescript": "^5.7.3",
-    "vitest": "^3.0.6"
+    "vitest": "^3.0.6",
+    "vue-tsc": "^2.2.0"
   }
 }

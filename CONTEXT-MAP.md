@@ -7,3 +7,4 @@
 - **Incidents Module**: [`/server/src/modules/incidents/CONTEXT.md`](file:///home/ryuk/project/uptime-test/server/src/modules/incidents/CONTEXT.md) — Escalation tiers, on-call schedules, alert routing.
 - **Status Pages Module**: [`/server/src/modules/status-pages/CONTEXT.md`](file:///home/ryuk/project/uptime-test/server/src/modules/status-pages/CONTEXT.md) — Custom domains, status badges, page generators.
 - **Billing Module**: [`/server/src/modules/billing/CONTEXT.md`](file:///home/ryuk/project/uptime-test/server/src/modules/billing/CONTEXT.md) — Stripe plans, subscription states, quota limits.
+- **Auth Module**: [`/server/src/modules/auth/CONTEXT.md`](file:///home/ryuk/project/uptime-test/server/src/modules/auth/CONTEXT.md) — User signup, organisation creation, identity verification, JWT tokens.

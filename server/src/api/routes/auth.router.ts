@@ -1,7 +1,10 @@
 import { FastifyInstance } from 'fastify';
+import { authRoutes } from '../../modules/auth/index.js';
 
 export async function authRouter(fastify: FastifyInstance) {
-  fastify.post('/login', async (request, reply) => {
+  await fastify.register(authRoutes);
+
+  fastify.post('/login', async (_request, reply) => {
     return reply.send({ message: 'Login successful', token: 'mock-jwt-token' });
   });
 

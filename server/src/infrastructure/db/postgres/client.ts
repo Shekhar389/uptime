@@ -9,9 +9,8 @@ export const prisma = new PrismaClient();
 export const db = {
   organisations: prisma.organisation,
   users: prisma.user,
-  monitors: (prisma as any).monitor,
-  teams: (prisma as any).team,
-  incidents: (prisma as any).incident,
+  monitors: prisma.monitor,
+  incidents: prisma.incident,
   $transaction: prisma.$transaction.bind(prisma),
   $queryRaw: prisma.$queryRaw.bind(prisma),
   $executeRaw: prisma.$executeRaw.bind(prisma),

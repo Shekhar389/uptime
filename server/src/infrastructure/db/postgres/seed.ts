@@ -6,10 +6,25 @@ const log = createComponentLogger('seed');
 async function seed() {
   log.info('Seeding PostgreSQL database...');
   try {
-    await db.teams.upsert({
-      where: { slug: 'acme-corp' },
+    const org = await db.organisations.upsert({
+      where: { oid: 'org-acme-corp' },
       update: {},
-      create: { name: 'Acme Corp', slug: 'acme-corp' },
+      create: {
+        name: 'Acme Corp',
+        oid: 'org-acme-corp',
+        description: 'Acme Corporation Primary Workspace',
+      },
+    });
+
+    await db.users.upsert({
+      where: { email: 'dev@example.com' },
+      update: {},
+      create: {
+        name: 'Dev Engineer',
+        email: 'dev@example.com',
+        password: 'password123',
+        organisation_id: org.id,
+      },
     });
     log.info('Seeding completed successfully.');
   } catch (err) {
@@ -20,4 +35,3 @@ async function seed() {
 }
 
 seed();
-

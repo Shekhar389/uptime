@@ -7,10 +7,11 @@ export const prisma = new PrismaClient();
 
 // Common DB pool & setup area to avoid invoking raw Prisma boilerplate in every line
 export const db = {
-  teams: prisma.team,
+  organisations: prisma.organisation,
   users: prisma.user,
-  monitors: prisma.monitor,
-  incidents: prisma.incident,
+  monitors: (prisma as any).monitor,
+  teams: (prisma as any).team,
+  incidents: (prisma as any).incident,
   $transaction: prisma.$transaction.bind(prisma),
   $queryRaw: prisma.$queryRaw.bind(prisma),
   $executeRaw: prisma.$executeRaw.bind(prisma),
@@ -30,5 +31,5 @@ export const disconnectPostgres = async (): Promise<void> => {
   await prisma.$disconnect();
 };
 
-export type { User, Team, Monitor, Incident } from '@prisma/client';
+export type { User, Organisation } from '@prisma/client';
 

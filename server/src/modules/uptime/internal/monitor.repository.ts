@@ -29,7 +29,7 @@ export async function getMonitorsByTeam(teamId: string): Promise<MonitorDTO[]> {
     orderBy: { createdAt: 'desc' },
   });
 
-  return monitors.map((m) => ({
+  return monitors.map((m: any) => ({
     id: m.id,
     teamId: m.teamId,
     name: m.name,

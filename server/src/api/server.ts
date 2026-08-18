@@ -3,6 +3,8 @@ import cors from '@fastify/cors';
 import helmet from '@fastify/helmet';
 import rateLimit from '@fastify/rate-limit';
 import sensible from '@fastify/sensible';
+import fastifySwagger from '@fastify/swagger';
+import fastifySwaggerUi from '@fastify/swagger-ui';
 import { env } from '../config/env.js';
 import { logger } from '../infrastructure/logger/index.js';
 import { checkPostgresHealth } from '../infrastructure/db/postgres/client.js';
@@ -24,6 +26,25 @@ export async function buildServer() {
   await app.register(rateLimit, { max: 100, timeWindow: '1 minute' });
   await app.register(cors, { origin: true });
   await app.register(sensible);
+
+  await app.register(fastifySwagger, {
+    openapi: {
+      info: {
+        title: 'Uptime Platform API Documentation',
+        description: 'Swagger / OpenAPI specification for authentication, user management, monitoring, and telemetry.',
+        version: '1.0.0',
+      },
+      servers: [{ url: `http://localhost:${env.PORT}` }],
+    },
+  });
+
+  await app.register(fastifySwaggerUi, {
+    routePrefix: '/docs',
+    uiConfig: {
+      docExpansion: 'list',
+      deepLinking: true,
+    },
+  });
 
   app.setErrorHandler(errorHandler);
 
@@ -60,6 +81,7 @@ async function start() {
     const app = await buildServer();
     await app.listen({ port: env.PORT, host: env.HOST });
     logger.info(`🚀 Fastify Server listening on http://${env.HOST}:${env.PORT}`);
+    logger.info(`📚 Swagger API Docs available at http://${env.HOST}:${env.PORT}/docs`);
 
     const shutdown = async (signal: string) => {
       logger.info(`Received ${signal}. Gracefully closing Fastify server...`);

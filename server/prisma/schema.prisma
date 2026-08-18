@@ -7,51 +7,37 @@ datasource db {
   url      = env("POSTGRES_URL")
 }
 
-model Team {
-  id        String     @id @default(uuid()) @db.Uuid
-  name      String     @db.VarChar(255)
-  slug      String     @unique @db.VarChar(255)
-  createdAt DateTime   @default(now()) @map("created_at") @db.Timestamptz
-  monitors  Monitor[]
-  incidents Incident[]
+enum OrganisationStatus {
+  active
+  inactive
+}
 
-  @@map("teams")
+model Organisation {
+  id          String             @id @default(uuid()) @db.Uuid
+  name        String             @db.VarChar(255)
+  logo        String?            @db.VarChar(255)
+  description String?            @db.VarChar(1000)
+  oid         String?            @unique @db.VarChar(16)
+  status      OrganisationStatus @default(active)
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz
+
+  users User[]
+
+  @@map("organisations")
 }
 
 model User {
   id        String   @id @default(uuid()) @db.Uuid
   email     String   @unique @db.VarChar(255)
   name      String   @db.VarChar(255)
+  password  String   @db.VarChar(255)
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz
+
+  organisation_id        String @db.Uuid
+  organisation Organisation @relation(fields: [organisation_id], references: [id])
 
   @@map("users")
-}
-
-model Monitor {
-  id              String     @id @default(uuid()) @db.Uuid
-  teamId          String     @map("team_id") @db.Uuid
-  name            String     @db.VarChar(255)
-  url             String     @db.VarChar(2048)
-  intervalSeconds Int        @default(60) @map("interval_seconds")
-  status          String     @default("up") @db.VarChar(50)
-  lastCheckedAt   DateTime?  @map("last_checked_at") @db.Timestamptz
-  createdAt       DateTime   @default(now()) @map("created_at") @db.Timestamptz
-  team            Team       @relation(fields: [teamId], references: [id], onDelete: Cascade)
-  incidents       Incident[]
-
-  @@map("monitors")
-}
-
-model Incident {
-  id         String    @id @default(uuid()) @db.Uuid
-  teamId     String    @map("team_id") @db.Uuid
-  monitorId  String    @map("monitor_id") @db.Uuid
-  title      String    @db.VarChar(500)
-  status     String    @default("investigating") @db.VarChar(50)
-  startedAt  DateTime  @default(now()) @map("started_at") @db.Timestamptz
-  resolvedAt DateTime? @map("resolved_at") @db.Timestamptz
-  team       Team      @relation(fields: [teamId], references: [id], onDelete: Cascade)
-  monitor    Monitor   @relation(fields: [monitorId], references: [id], onDelete: Cascade)
-
-  @@map("incidents")
 }

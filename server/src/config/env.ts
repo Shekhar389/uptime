@@ -11,6 +11,7 @@ const envSchema = z.object({
   CLICKHOUSE_USER: z.string().default('default'),
   CLICKHOUSE_PASSWORD: z.string().default(''),
   REDIS_URL: z.string().default('redis://localhost:6379'),
+  JWT_SECRET: z.string().default('default_jwt_secret_key_change_in_production'),
   LOG_LEVEL: z.enum(['fatal', 'error', 'warn', 'info', 'debug', 'trace']).default('info'),
 });
 

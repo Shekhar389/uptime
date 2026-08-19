@@ -12,7 +12,7 @@
       </div>
 
       <UButton
-        class="gap-2 bg-zinc-100 text-zinc-950 hover:bg-zinc-200 font-semibold shadow-sm"
+        class="gap-2 font-semibold shadow-sm"
         @click="isOpen = true"
       >
         <UIcon name="i-heroicons-plus" class="w-4 h-4" /> Add Monitor
@@ -21,7 +21,7 @@
 
     <!-- Modal Form for Adding Monitor -->
     <UModal v-model="isOpen">
-      <UCard class="bg-zinc-900 border-zinc-800 text-zinc-100">
+      <UCard>
         <template #header>
           <div class="flex items-center justify-between">
             <h3 class="text-lg font-bold text-white">Create Health Check</h3>
@@ -34,16 +34,16 @@
 
         <UForm :schema="createMonitorSchema" :state="state" class="space-y-4" @submit="onSubmit">
           <UFormGroup label="MONITOR NAME" name="name" class="text-xs font-semibold uppercase tracking-wider text-zinc-300">
-            <UInput v-model="state.name" placeholder="e.g. Primary API Gateway" class="bg-zinc-950 border-zinc-800 text-zinc-100" />
+            <UInput v-model="state.name" placeholder="e.g. Primary API Gateway" />
           </UFormGroup>
 
           <UFormGroup label="URL ENDPOINT" name="url" class="text-xs font-semibold uppercase tracking-wider text-zinc-300">
-            <UInput v-model="state.url" placeholder="https://api.acme.com/health" class="bg-zinc-950 border-zinc-800 text-zinc-100" />
+            <UInput v-model="state.url" placeholder="https://api.acme.com/health" />
           </UFormGroup>
 
           <div class="grid grid-cols-2 gap-3">
             <UFormGroup label="INTERVAL (SEC)" name="intervalSeconds" class="text-xs font-semibold uppercase tracking-wider text-zinc-300">
-              <UInput v-model.number="state.intervalSeconds" type="number" placeholder="60" class="bg-zinc-950 border-zinc-800 text-zinc-100" />
+              <UInput v-model.number="state.intervalSeconds" type="number" placeholder="60" />
             </UFormGroup>
 
             <UFormGroup label="STATUS" name="status" class="text-xs font-semibold uppercase tracking-wider text-zinc-300">
@@ -52,14 +52,13 @@
                 :options="statusOptions"
                 option-attribute="label"
                 value-attribute="value"
-                class="bg-zinc-950 border-zinc-800 text-zinc-100"
               />
             </UFormGroup>
           </div>
 
           <div class="flex justify-end gap-2 pt-3 border-t border-zinc-800">
             <UButton variant="ghost" color="gray" @click="isOpen = false">Cancel</UButton>
-            <UButton type="submit" class="bg-zinc-100 text-zinc-950 hover:bg-zinc-200 font-semibold">Save Monitor</UButton>
+            <UButton type="submit" color="white" variant="solid" class="bg-zinc-100 hover:bg-white text-zinc-950 font-semibold">Save Monitor</UButton>
           </div>
         </UForm>
       </UCard>
@@ -67,7 +66,7 @@
 
     <!-- Metric Summary Cards -->
     <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-      <UCard class="bg-zinc-900 border-zinc-800 text-zinc-100 shadow-sm">
+      <UCard>
         <div class="flex flex-row items-center justify-between">
           <span class="text-xs font-medium text-zinc-400 uppercase tracking-wider">Total Active</span>
           <UIcon name="i-heroicons-globe-alt" class="h-4 w-4 text-zinc-300" />
@@ -76,7 +75,7 @@
         <p class="text-[11px] text-zinc-500 mt-1">Monitored target URLs</p>
       </UCard>
 
-      <UCard class="bg-zinc-900 border-zinc-800 text-zinc-100 shadow-sm">
+      <UCard>
         <div class="flex flex-row items-center justify-between">
           <span class="text-xs font-medium text-zinc-400 uppercase tracking-wider">Healthy (Up)</span>
           <UIcon name="i-heroicons-shield-check" class="h-4 w-4 text-zinc-100" />
@@ -85,7 +84,7 @@
         <p class="text-[11px] text-zinc-500 mt-1">Passing checks</p>
       </UCard>
 
-      <UCard class="bg-zinc-900 border-zinc-800 text-zinc-100 shadow-sm">
+      <UCard>
         <div class="flex flex-row items-center justify-between">
           <span class="text-xs font-medium text-zinc-400 uppercase tracking-wider">Degraded</span>
           <UIcon name="i-heroicons-clock" class="h-4 w-4 text-zinc-400" />
@@ -94,7 +93,7 @@
         <p class="text-[11px] text-zinc-500 mt-1">High response latency</p>
       </UCard>
 
-      <UCard class="bg-zinc-900 border-zinc-800 text-zinc-100 shadow-sm">
+      <UCard>
         <div class="flex flex-row items-center justify-between">
           <span class="text-xs font-medium text-zinc-400 uppercase tracking-wider">Outages (Down)</span>
           <UIcon name="i-heroicons-chart-bar" class="h-4 w-4 text-zinc-500" />
@@ -105,7 +104,7 @@
     </div>
 
     <!-- Main Table Card -->
-    <UCard class="bg-zinc-900 border-zinc-800 text-zinc-100 shadow-sm overflow-hidden" :ui="{ body: { padding: 'p-0 sm:p-0' } }">
+    <UCard :ui="{ body: { padding: 'p-0 sm:p-0' } }">
       <template #header>
         <div class="flex flex-row items-center justify-between">
           <div>

@@ -22,22 +22,39 @@ export interface Team {
 }
 
 export const useAuthStore = defineStore('auth', () => {
-  const isAuthenticated = ref(true);
-  const user = ref<User | null>({
-    id: 'usr-1',
-    name: 'Dev Engineer',
-    email: 'dev@example.com',
-  });
-  const organisation = ref<Organisation | null>({
-    id: '00000000-0000-0000-0000-000000000001',
-    name: 'Acme Corp',
-    oid: 'acme-corp',
-  });
-  const team = ref<Team | null>({
-    id: '00000000-0000-0000-0000-000000000001',
-    name: 'Acme Corp',
-  });
-  const token = ref<string | null>('dev-token-default');
+  const isAuthenticated = ref(false);
+  const user = ref<User | null>(null);
+  const organisation = ref<Organisation | null>(null);
+  const team = ref<Team | null>(null);
+  const token = ref<string | null>(null);
+
+  function initFromStorage() {
+    if (typeof window !== 'undefined' && window.localStorage) {
+      const storedToken = localStorage.getItem('auth_token');
+      const storedOrgId = localStorage.getItem('organisation_id');
+      const storedOrgName = localStorage.getItem('organisation_name');
+      const storedUserData = localStorage.getItem('user_data');
+
+      if (storedToken) {
+        token.value = storedToken;
+        isAuthenticated.value = true;
+      }
+      if (storedUserData) {
+        try {
+          user.value = JSON.parse(storedUserData);
+        } catch {
+          user.value = null;
+        }
+      }
+      if (storedOrgId) {
+        const orgObj = { id: storedOrgId, name: storedOrgName || 'Organisation' };
+        organisation.value = orgObj;
+        team.value = { id: storedOrgId, name: storedOrgName || 'Organisation' };
+      }
+    }
+  }
+
+  initFromStorage();
 
   function setAuth(payload: {
     user: User;
@@ -52,15 +69,19 @@ export const useAuthStore = defineStore('auth', () => {
     organisation.value = org;
     team.value = org ? { id: org.id, name: org.name } : null;
 
-    if (payload.token) {
-      token.value = payload.token;
-      if (typeof window !== 'undefined' && window.localStorage) {
+    if (typeof window !== 'undefined' && window.localStorage) {
+      if (payload.token) {
+        token.value = payload.token;
         localStorage.setItem('auth_token', payload.token);
       }
-    }
-    if (org && typeof window !== 'undefined' && window.localStorage) {
-      localStorage.setItem('organisation_id', org.id);
-      localStorage.setItem('team_id', org.id);
+      if (payload.user) {
+        localStorage.setItem('user_data', JSON.stringify(payload.user));
+      }
+      if (org) {
+        localStorage.setItem('organisation_id', org.id);
+        localStorage.setItem('organisation_name', org.name);
+        localStorage.setItem('team_id', org.id);
+      }
     }
   }
 
@@ -69,6 +90,7 @@ export const useAuthStore = defineStore('auth', () => {
     team.value = { id: newOrg.id, name: newOrg.name };
     if (typeof window !== 'undefined' && window.localStorage) {
       localStorage.setItem('organisation_id', newOrg.id);
+      localStorage.setItem('organisation_name', newOrg.name);
       localStorage.setItem('team_id', newOrg.id);
     }
   }
@@ -86,7 +108,9 @@ export const useAuthStore = defineStore('auth', () => {
     if (typeof window !== 'undefined' && window.localStorage) {
       localStorage.removeItem('auth_token');
       localStorage.removeItem('organisation_id');
+      localStorage.removeItem('organisation_name');
       localStorage.removeItem('team_id');
+      localStorage.removeItem('user_data');
     }
   }
 

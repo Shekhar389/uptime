@@ -25,20 +25,20 @@ export function useApiClient() {
         authStore.token ||
         (typeof window !== 'undefined' && window.localStorage
           ? localStorage.getItem('auth_token')
-          : null) ||
-        'dev-token-default';
-      const teamId =
+          : null);
+      const orgId =
+        authStore.organisation?.id ||
         authStore.team?.id ||
         (typeof window !== 'undefined' && window.localStorage
-          ? localStorage.getItem('team_id')
-          : null) ||
-        '00000000-0000-0000-0000-000000000001';
+          ? localStorage.getItem('organisation_id') || localStorage.getItem('team_id')
+          : null);
 
       if (token) {
         headers.set('Authorization', `Bearer ${token}`);
       }
-      if (teamId) {
-        headers.set('X-Team-ID', teamId);
+      if (orgId) {
+        headers.set('X-Organisation-ID', orgId);
+        headers.set('X-Team-ID', orgId);
       }
       options.headers = headers;
     },

@@ -17,6 +17,7 @@ export interface CreateOrgData {
 export interface IAuthRepository {
   findUserByEmail(email: string): Promise<User | null>;
   findOrganisationByOid(oid: string): Promise<Organisation | null>;
+  findOrganisationById(id: string): Promise<Organisation | null>;
   createUser(data: CreateUserData): Promise<User>;
   createOrgAndUser(
     orgData: CreateOrgData,
@@ -34,6 +35,12 @@ export class PrismaAuthRepository implements IAuthRepository {
   async findOrganisationByOid(oid: string): Promise<Organisation | null> {
     return db.organisations.findUnique({
       where: { oid },
+    });
+  }
+
+  async findOrganisationById(id: string): Promise<Organisation | null> {
+    return db.organisations.findUnique({
+      where: { id },
     });
   }
 

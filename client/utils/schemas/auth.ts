@@ -9,8 +9,8 @@ export type LoginInput = z.infer<typeof loginSchema>;
 
 export const newOrgSchema = z.object({
   name: z.string().max(255).optional(),
-  logo: z.string().max(255).optional().nullable(),
-  description: z.string().max(1000).optional().nullable(),
+  logo: z.string().max(255).optional(),
+  description: z.string().max(1000).optional(),
 });
 
 export const signupSchema = z

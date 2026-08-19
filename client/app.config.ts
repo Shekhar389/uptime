@@ -19,7 +19,7 @@ export default defineAppConfig({
       rounded: 'rounded-lg',
       font: 'font-medium',
       default: {
-        color: 'zinc',
+        color: 'white',
       },
     },
     badge: {

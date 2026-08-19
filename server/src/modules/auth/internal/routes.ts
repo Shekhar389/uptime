@@ -102,4 +102,81 @@ export async function authRoutes(fastify: FastifyInstance) {
     },
     controller.signup
   );
+
+  fastify.post(
+    '/login',
+    {
+      schema: {
+        tags: ['Authentication'],
+        summary: 'User Login',
+        description: 'Authenticates a user using email and password, returning the user, organisation details, and a JWT access token.',
+        body: {
+          type: 'object',
+          required: ['email', 'password'],
+          properties: {
+            email: { type: 'string', format: 'email', description: 'User email address' },
+            password: { type: 'string', minLength: 1, description: 'User password' },
+          },
+        },
+        response: {
+          200: {
+            type: 'object',
+            description: 'User authenticated successfully',
+            properties: {
+              user: {
+                type: 'object',
+                properties: {
+                  id: { type: 'string', format: 'uuid' },
+                  email: { type: 'string' },
+                  name: { type: 'string' },
+                  organisationId: { type: 'string', format: 'uuid' },
+                  createdAt: { type: 'string', format: 'date-time' },
+                },
+              },
+              organisation: {
+                type: 'object',
+                properties: {
+                  id: { type: 'string', format: 'uuid' },
+                  name: { type: 'string' },
+                  logo: { type: 'string', nullable: true },
+                  description: { type: 'string', nullable: true },
+                  oid: { type: 'string', nullable: true },
+                  status: { type: 'string' },
+                },
+              },
+              token: { type: 'string', description: 'Symmetric HS256 JWT access token' },
+            },
+          },
+          400: {
+            type: 'object',
+            description: 'Validation Error',
+            properties: {
+              error: { type: 'string' },
+              statusCode: { type: 'number', example: 400 },
+              timestamp: { type: 'string', format: 'date-time' },
+            },
+          },
+          401: {
+            type: 'object',
+            description: 'Invalid Credentials',
+            properties: {
+              error: { type: 'string' },
+              statusCode: { type: 'number', example: 401 },
+              timestamp: { type: 'string', format: 'date-time' },
+            },
+          },
+          403: {
+            type: 'object',
+            description: 'Inactive Organisation',
+            properties: {
+              error: { type: 'string' },
+              statusCode: { type: 'number', example: 403 },
+              timestamp: { type: 'string', format: 'date-time' },
+            },
+          },
+        },
+      },
+    },
+    controller.login
+  );
 }

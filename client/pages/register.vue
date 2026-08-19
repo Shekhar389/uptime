@@ -12,7 +12,7 @@
     </div>
 
     <!-- Nuxt UI Card Register Form -->
-    <UCard class="bg-zinc-900 border-zinc-800 text-zinc-100 shadow-2xl">
+    <UCard>
       <template #header>
         <div class="space-y-1 text-center pb-2">
           <h2 class="text-xl font-bold tracking-tight text-white">Create an Account</h2>
@@ -36,7 +36,6 @@
           <UInput
             v-model="state.name"
             placeholder="Jane Doe"
-            class="bg-zinc-950 border-zinc-800 text-zinc-100"
           />
         </UFormGroup>
 
@@ -45,7 +44,6 @@
             v-model="state.email"
             type="email"
             placeholder="jane@company.com"
-            class="bg-zinc-950 border-zinc-800 text-zinc-100"
           />
         </UFormGroup>
 
@@ -54,7 +52,6 @@
             v-model="state.password"
             type="password"
             placeholder="At least 8 characters"
-            class="bg-zinc-950 border-zinc-800 text-zinc-100"
           />
         </UFormGroup>
 
@@ -64,7 +61,13 @@
             <UInput
               v-model="state.org.name"
               placeholder="Acme Corp"
-              class="bg-zinc-950 border-zinc-800 text-zinc-100"
+            />
+          </UFormGroup>
+
+          <UFormGroup label="ORGANISATION LOGO URL (OPTIONAL)" name="org.logo" class="text-xs font-semibold uppercase tracking-wider text-zinc-300">
+            <UInput
+              v-model="state.org.logo"
+              placeholder="https://example.com/logo.png"
             />
           </UFormGroup>
 
@@ -72,7 +75,6 @@
             <UTextarea
               v-model="state.org.description"
               placeholder="Production Uptime & Monitoring Workspace"
-              class="bg-zinc-950 border-zinc-800 text-zinc-100"
               rows="2"
             />
           </UFormGroup>
@@ -84,7 +86,6 @@
             <UInput
               v-model="state.oid"
               placeholder="e.g. acme-x9k2p"
-              class="bg-zinc-950 border-zinc-800 text-zinc-100"
             />
           </UFormGroup>
         </template>
@@ -93,8 +94,10 @@
           <UButton
             type="submit"
             block
+            color="white"
+            variant="solid"
             :loading="loading"
-            class="bg-zinc-100 text-zinc-950 hover:bg-zinc-200 font-bold gap-2 py-3 shadow-lg"
+            class="bg-zinc-100 hover:bg-white text-zinc-950 font-bold gap-2 py-3 shadow-lg justify-center flex items-center"
           >
             Create Account <UIcon name="i-heroicons-arrow-right" class="w-4 h-4" />
           </UButton>
@@ -149,6 +152,7 @@ const state = reactive({
   oid: '',
   org: {
     name: '',
+    logo: '',
     description: '',
   },
 });
@@ -174,6 +178,7 @@ const onSubmit = async () => {
             password: state.password,
             org: {
               name: state.org.name,
+              logo: state.org.logo || undefined,
               description: state.org.description || undefined,
             },
           };

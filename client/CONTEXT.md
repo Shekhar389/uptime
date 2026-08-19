@@ -9,12 +9,12 @@
 - **Code Quality**: oxlint + Prettier + Vitest with `@nuxt/test-utils`.
 
 ## State & API Conventions
-- **Global App State**: Managed via **Pinia** stores (`stores/{auth, uptime, incidents, billing}.ts`) with Nuxt auto-imports.
+- **Global App State**: Managed via **Pinia** stores (`stores/{auth, uptime, incidents, billing}.ts`) with Nuxt auto-imports. `stores/auth.ts` initializes in an unauthenticated state (`isAuthenticated = false`) by default and hydratessession state (token, user, organization) from `localStorage` on client init.
 - **API Client Seam**: Centralized `$fetch` wrapper composable (`composables/useApiClient.ts`) with request interceptors for injecting `Authorization: Bearer <token>` and `X-Organisation-ID` / `X-Team-ID` headers, and response interceptors for error handling.
 - **Form & Validation Seams**: Nuxt UI `<UForm>` + **Zod** schema validation (`utils/schemas/*.ts` or feature schemas) with native `<UForm :schema="schema">`.
 - **Domain Modeling**: Primary workspace entity is `Organisation` (`organisationId`, `oid`), represented in `stores/auth.ts` and user signup form.
 
 ## Directory Isolation & Deep Modules
-- **File-Based Routing**: Pages under `pages/`, shared layouts under `layouts/`, and route guards under `middleware/`.
+- **File-Based Routing & Protection**: Pages under `pages/`, shared layouts under `layouts/`, and global route guard under `middleware/auth.global.ts` enforcing authentication on protected dashboard routes and redirecting unauthenticated users with `redirect` query parameter.
 - **Composables & Stores**: Domain logic contained within auto-imported `composables/` and `stores/`.
 - **Tests**: Verified using Vitest + `@nuxt/test-utils` (`pnpm --filter client test`).

@@ -42,3 +42,10 @@ export interface SignupResponseDTO {
   organisation: OrganisationDTO;
   token: string;
 }
+
+export interface LoginRequestDTO {
+  email: string;
+  password: string;
+}
+
+export type LoginResponseDTO = SignupResponseDTO;

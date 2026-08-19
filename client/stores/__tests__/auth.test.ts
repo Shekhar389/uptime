@@ -9,10 +9,11 @@ describe('Pinia Auth Store', () => {
 
   it('initializes with default state', () => {
     const authStore = useAuthStore();
-    expect(authStore.isAuthenticated).toBe(true);
-    expect(authStore.user?.email).toBe('dev@example.com');
-    expect(authStore.organisation?.name).toBe('Acme Corp');
-    expect(authStore.team?.name).toBe('Acme Corp');
+    expect(authStore.isAuthenticated).toBe(false);
+    expect(authStore.user).toBeNull();
+    expect(authStore.organisation).toBeNull();
+    expect(authStore.team).toBeNull();
+    expect(authStore.token).toBeNull();
   });
 
   it('updates state on setAuth action with organisation', () => {

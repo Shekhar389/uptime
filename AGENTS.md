@@ -26,3 +26,4 @@ Canonical triage label mapping for issue tracking. See `docs/agents/triage-label
 
 ### Domain docs
 Single-context domain documentation layout (`CONTEXT.md` and `docs/adr/`). See `docs/agents/domain.md`.
+    

@@ -3,15 +3,16 @@
 ## Architecture & Tooling Stack
 - **Framework & Compiler**: Nuxt 3 (SPA mode, `ssr: false`) + Vue 3 + Vite + TypeScript (Strict).
 - **Design System & Component Library**: **Nuxt UI** (`@nuxt/ui`) components (`<UButton>`, `<UCard>`, `<UTable>`, `<UModal>`, `<UBadge>`, `<USelect>`, `<UTabs>`, `<UInput>`, `<UForm>`).
-- **Styling**: Tailwind CSS + Nuxt UI design tokens configured in `app.config.ts`.
+- **Styling**: Tailwind CSS + Nuxt UI theme presets centralized in `app.config.ts` (`docs/adr/0005-centralized-nuxt-ui-presets-in-app-config.md`). Avoid inline utility duplication or raw CSS `:root` variables.
 - **App Shell & Routing**: Nuxt file-based routing (`pages/`) with layout templates (`layouts/default.vue`, `layouts/auth.vue`).
 - **Package Manager**: `pnpm` exclusively across all commands and package management.
 - **Code Quality**: oxlint + Prettier + Vitest with `@nuxt/test-utils`.
 
 ## State & API Conventions
 - **Global App State**: Managed via **Pinia** stores (`stores/{auth, uptime, incidents, billing}.ts`) with Nuxt auto-imports.
-- **API Client Seam**: Centralized `$fetch` wrapper composable (`composables/useApiClient.ts`) with request interceptors for injecting `Authorization: Bearer <token>` and `X-Team-ID` headers, and response interceptors for error handling.
+- **API Client Seam**: Centralized `$fetch` wrapper composable (`composables/useApiClient.ts`) with request interceptors for injecting `Authorization: Bearer <token>` and `X-Organisation-ID` / `X-Team-ID` headers, and response interceptors for error handling.
 - **Form & Validation Seams**: Nuxt UI `<UForm>` + **Zod** schema validation (`utils/schemas/*.ts` or feature schemas) with native `<UForm :schema="schema">`.
+- **Domain Modeling**: Primary workspace entity is `Organisation` (`organisationId`, `oid`), represented in `stores/auth.ts` and user signup form.
 
 ## Directory Isolation & Deep Modules
 - **File-Based Routing**: Pages under `pages/`, shared layouts under `layouts/`, and route guards under `middleware/`.

@@ -58,6 +58,14 @@
       </UForm>
     </UCard>
 
+    <!-- Navigation link to register -->
+    <div class="text-center text-xs text-zinc-400">
+      Don't have an account?
+      <NuxtLink to="/register" class="text-zinc-100 hover:underline font-semibold ml-1">
+        Create an account
+      </NuxtLink>
+    </div>
+
     <!-- Footer info -->
     <div class="flex items-center justify-center gap-2 text-xs text-zinc-500">
       <UIcon name="i-heroicons-shield-check" class="w-4 h-4" />

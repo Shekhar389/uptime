@@ -43,22 +43,17 @@
 
           <div class="grid grid-cols-2 gap-3">
             <UFormGroup label="INTERVAL (SEC)" name="intervalSeconds" class="text-xs font-semibold uppercase tracking-wider text-zinc-300">
-              <UInput v-model.number="state.intervalSeconds" type="number" placeholder="60" />
+              <UInput v-model.number="state.intervalSeconds" type="number" placeholder="180" />
             </UFormGroup>
 
-            <UFormGroup label="STATUS" name="status" class="text-xs font-semibold uppercase tracking-wider text-zinc-300">
-              <USelect
-                v-model="state.status"
-                :options="statusOptions"
-                option-attribute="label"
-                value-attribute="value"
-              />
+            <UFormGroup label="MONITOR TYPE" name="type" class="text-xs font-semibold uppercase tracking-wider text-zinc-300">
+              <UInput v-model="state.type" disabled placeholder="http" />
             </UFormGroup>
           </div>
 
           <div class="flex justify-end gap-2 pt-3 border-t border-zinc-800">
             <UButton variant="ghost" color="gray" @click="isOpen = false">Cancel</UButton>
-            <UButton type="submit" color="white" variant="solid" class="bg-zinc-100 hover:bg-white text-zinc-950 font-semibold">Save Monitor</UButton>
+            <UButton type="submit" color="white" variant="solid" :loading="uptimeStore.loading" class="bg-zinc-100 hover:bg-white text-zinc-950 font-semibold">Save Monitor</UButton>
           </div>
         </UForm>
       </UCard>
@@ -140,7 +135,7 @@
         </div>
       </template>
 
-      <UTable :columns="columns" :rows="filteredMonitors">
+      <UTable :loading="uptimeStore.loading" :columns="columns" :rows="filteredMonitors">
         <template #status-data="{ row }">
           <UBadge
             variant="outline"
@@ -189,15 +184,9 @@ const isOpen = ref(false);
 const state = reactive<CreateMonitorInput>({
   name: '',
   url: '',
-  intervalSeconds: 60,
-  status: 'up',
+  intervalSeconds: 180,
+  type: 'http',
 });
-
-const statusOptions = [
-  { label: 'Up (Healthy)', value: 'up' },
-  { label: 'Degraded', value: 'degraded' },
-  { label: 'Down (Outage)', value: 'down' },
-];
 
 const columns = [
   { key: 'name', label: 'Endpoint Name' },
@@ -213,13 +202,26 @@ const filteredMonitors = computed(() => {
   return uptimeStore.monitors.filter((m) => m.status === uptimeStore.filter);
 });
 
-const onSubmit = () => {
-  uptimeStore.addMonitor({ ...state });
-  state.name = '';
-  state.url = '';
-  state.intervalSeconds = 60;
-  state.status = 'up';
-  isOpen.value = false;
+onMounted(() => {
+  uptimeStore.fetchMonitors();
+});
+
+const onSubmit = async () => {
+  try {
+    await uptimeStore.createMonitor({
+      name: state.name,
+      url: state.url,
+      intervalSeconds: state.intervalSeconds,
+      type: state.type,
+    });
+    state.name = '';
+    state.url = '';
+    state.intervalSeconds = 180;
+    state.type = 'http';
+    isOpen.value = false;
+  } catch {
+    // Error is handled in store ref error state
+  }
 };
 
 const rowActions = (row: Monitor) => [

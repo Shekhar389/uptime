@@ -5,16 +5,18 @@ const log = createComponentLogger('postgres');
 
 export const prisma = new PrismaClient();
 
-// Common DB pool & setup area to avoid invoking raw Prisma boilerplate in every line
+// Common DB pool & setup area exposing direct Prisma model delegates
 export const db = {
-  organisations: prisma.organisation,
-  users: prisma.user,
-  monitors: prisma.monitor,
-  incidents: prisma.incident,
+  organisation: prisma.organisation,
+  user: prisma.user,
+  monitor: prisma.monitor,
+  incident: prisma.incident,
   $transaction: prisma.$transaction.bind(prisma),
   $queryRaw: prisma.$queryRaw.bind(prisma),
   $executeRaw: prisma.$executeRaw.bind(prisma),
 };
+
+export type DbClient = typeof db;
 
 export const checkPostgresHealth = async (): Promise<boolean> => {
   try {

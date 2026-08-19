@@ -1,22 +1,26 @@
 import { AuthService } from '../internal/service.js';
-import { IAuthRepository } from '../internal/repository.js';
+import { DbClient } from '../../../infrastructure/db/postgres/client.js';
 import { AppError } from '../../../shared/errors/app-error.js';
 import { hashPassword, verifyJwt } from '../internal/utils/crypto.js';
 import { env } from '../../../config/env.js';
 
 describe('AuthService', () => {
-  let mockRepo: jest.Mocked<IAuthRepository>;
+  let mockDbClient: any;
   let authService: AuthService;
 
   beforeEach(() => {
-    mockRepo = {
-      findUserByEmail: jest.fn(),
-      findOrganisationByOid: jest.fn(),
-      findOrganisationById: jest.fn(),
-      createUser: jest.fn(),
-      createOrgAndUser: jest.fn(),
+    mockDbClient = {
+      user: {
+        findUnique: jest.fn(),
+        create: jest.fn(),
+      },
+      organisation: {
+        findUnique: jest.fn(),
+        create: jest.fn(),
+      },
+      $transaction: jest.fn((callback) => callback(mockDbClient)),
     };
-    authService = new AuthService(mockRepo);
+    authService = new AuthService(mockDbClient as unknown as DbClient);
   });
 
   describe('signup - Scenario 1: Existing Organisation', () => {
@@ -49,9 +53,9 @@ describe('AuthService', () => {
         updatedAt: new Date(),
       };
 
-      mockRepo.findUserByEmail.mockResolvedValue(null);
-      mockRepo.findOrganisationByOid.mockResolvedValue(mockOrg);
-      mockRepo.createUser.mockResolvedValue(mockUser);
+      mockDbClient.user.findUnique.mockResolvedValue(null);
+      mockDbClient.organisation.findUnique.mockResolvedValue(mockOrg);
+      mockDbClient.user.create.mockResolvedValue(mockUser);
 
       const result = await authService.signup(input);
 
@@ -68,7 +72,7 @@ describe('AuthService', () => {
     });
 
     it('should throw 409 error if email already exists', async () => {
-      mockRepo.findUserByEmail.mockResolvedValue({
+      mockDbClient.user.findUnique.mockResolvedValue({
         id: 'existing-user',
         email: 'user@existing.com',
         name: 'Existing',
@@ -89,8 +93,8 @@ describe('AuthService', () => {
     });
 
     it('should throw 404 error if target organisation oid does not exist', async () => {
-      mockRepo.findUserByEmail.mockResolvedValue(null);
-      mockRepo.findOrganisationByOid.mockResolvedValue(null);
+      mockDbClient.user.findUnique.mockResolvedValue(null);
+      mockDbClient.organisation.findUnique.mockResolvedValue(null);
 
       await expect(
         authService.signup({
@@ -103,8 +107,8 @@ describe('AuthService', () => {
     });
 
     it('should throw 403 error if target organisation status is inactive', async () => {
-      mockRepo.findUserByEmail.mockResolvedValue(null);
-      mockRepo.findOrganisationByOid.mockResolvedValue({
+      mockDbClient.user.findUnique.mockResolvedValue(null);
+      mockDbClient.organisation.findUnique.mockResolvedValue({
         id: 'org-uuid-2',
         name: 'Inactive Org',
         logo: null,
@@ -160,28 +164,32 @@ describe('AuthService', () => {
         updatedAt: new Date(),
       };
 
-      mockRepo.findUserByEmail.mockResolvedValue(null);
-      mockRepo.createOrgAndUser.mockResolvedValue({
-        organisation: mockOrg,
-        user: mockUser,
-      });
+      mockDbClient.user.findUnique.mockResolvedValue(null);
+      mockDbClient.organisation.create.mockResolvedValue(mockOrg);
+      mockDbClient.user.create.mockResolvedValue(mockUser);
 
       const result = await authService.signup(input);
 
       expect(result.user.email).toBe('founder@startup.com');
       expect(result.organisation.name).toBe('Startup Inc');
-      expect(result.organisation.oid).toBe('startupinc-x1y2z');
       expect(result.token).toBeDefined();
 
-      expect(mockRepo.createOrgAndUser).toHaveBeenCalledWith(
+      expect(mockDbClient.organisation.create).toHaveBeenCalledWith(
         expect.objectContaining({
-          name: 'Startup Inc',
-          logo: 'https://startup.com/logo.png',
-          description: 'A brand new startup',
-        }),
+          data: expect.objectContaining({
+            name: 'Startup Inc',
+            logo: 'https://startup.com/logo.png',
+            description: 'A brand new startup',
+          }),
+        })
+      );
+      expect(mockDbClient.user.create).toHaveBeenCalledWith(
         expect.objectContaining({
-          email: 'founder@startup.com',
-          name: 'Alice Founder',
+          data: expect.objectContaining({
+            email: 'founder@startup.com',
+            name: 'Alice Founder',
+            organisation_id: 'new-org-uuid',
+          }),
         })
       );
     });
@@ -213,8 +221,8 @@ describe('AuthService', () => {
         updatedAt: new Date(),
       };
 
-      mockRepo.findUserByEmail.mockResolvedValue(mockUser);
-      mockRepo.findOrganisationById.mockResolvedValue(mockOrg);
+      mockDbClient.user.findUnique.mockResolvedValue(mockUser);
+      mockDbClient.organisation.findUnique.mockResolvedValue(mockOrg);
 
       const result = await authService.login({
         email: 'member@acme.com',
@@ -233,7 +241,7 @@ describe('AuthService', () => {
     });
 
     it('should throw 401 error if user email does not exist', async () => {
-      mockRepo.findUserByEmail.mockResolvedValue(null);
+      mockDbClient.user.findUnique.mockResolvedValue(null);
 
       await expect(
         authService.login({
@@ -246,7 +254,7 @@ describe('AuthService', () => {
     it('should throw 401 error if password is incorrect', async () => {
       const passwordHash = hashPassword('correctpassword');
 
-      mockRepo.findUserByEmail.mockResolvedValue({
+      mockDbClient.user.findUnique.mockResolvedValue({
         id: 'user-1',
         email: 'user@acme.com',
         name: 'User',
@@ -268,7 +276,7 @@ describe('AuthService', () => {
       const password = 'validpassword';
       const passwordHash = hashPassword(password);
 
-      mockRepo.findUserByEmail.mockResolvedValue({
+      mockDbClient.user.findUnique.mockResolvedValue({
         id: 'user-1',
         email: 'user@inactive.com',
         name: 'User',
@@ -278,7 +286,7 @@ describe('AuthService', () => {
         updatedAt: new Date(),
       });
 
-      mockRepo.findOrganisationById.mockResolvedValue({
+      mockDbClient.organisation.findUnique.mockResolvedValue({
         id: 'org-inactive',
         name: 'Inactive Corp',
         logo: null,

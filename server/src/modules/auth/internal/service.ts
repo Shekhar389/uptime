@@ -1,6 +1,6 @@
 import { AppError } from '../../../shared/errors/app-error.js';
 import { env } from '../../../config/env.js';
-import { IAuthRepository, PrismaAuthRepository } from './repository.js';
+import { db, DbClient } from '../../../infrastructure/db/postgres/client.js';
 import { SignupInput, LoginInput } from './schemas.js';
 import { SignupResponseDTO, LoginResponseDTO } from './dto.js';
 import { hashPassword, comparePassword, signJwt } from './utils/crypto.js';
@@ -12,11 +12,13 @@ export type SignupResult = SignupResponseDTO;
 export type LoginResult = LoginResponseDTO;
 
 export class AuthService {
-  constructor(private readonly repo: IAuthRepository = new PrismaAuthRepository()) {}
+  constructor(private readonly dbClient: DbClient = db) {}
 
   async signup(input: SignupInput): Promise<SignupResponseDTO> {
     // 1. Check if user email is already registered
-    const existingUser = await this.repo.findUserByEmail(input.email);
+    const existingUser = await this.dbClient.user.findUnique({
+      where: { email: input.email },
+    });
     if (existingUser) {
       throw new AppError('User with this email already exists.', 409);
     }
@@ -25,7 +27,9 @@ export class AuthService {
 
     // Scenario 1: Joining an existing organisation via oid
     if (input.oid) {
-      const org = await this.repo.findOrganisationByOid(input.oid);
+      const org = await this.dbClient.organisation.findUnique({
+        where: { oid: input.oid },
+      });
       if (!org) {
         throw new AppError('Organisation with given oid not found.', 404);
       }
@@ -33,11 +37,13 @@ export class AuthService {
         throw new AppError('Organisation is inactive.', 403);
       }
 
-      const user = await this.repo.createUser({
-        email: input.email,
-        name: input.name,
-        passwordHash,
-        organisationId: org.id,
+      const user = await this.dbClient.user.create({
+        data: {
+          email: input.email,
+          name: input.name,
+          password: passwordHash,
+          organisation_id: org.id,
+        },
       });
 
       const token = signJwt(
@@ -77,19 +83,27 @@ export class AuthService {
     while (retries > 0 && !createdResult) {
       const generatedOid = generateOid(input.org.name);
       try {
-        createdResult = await this.repo.createOrgAndUser(
-          {
-            name: input.org.name,
-            oid: generatedOid,
-            logo: input.org.logo,
-            description: input.org.description,
-          },
-          {
-            email: input.email,
-            name: input.name,
-            passwordHash,
-          }
-        );
+        createdResult = await this.dbClient.$transaction(async (tx) => {
+          const organisation = await tx.organisation.create({
+            data: {
+              name: input.org!.name,
+              oid: generatedOid,
+              logo: input.org!.logo ?? null,
+              description: input.org!.description ?? null,
+            },
+          });
+
+          const user = await tx.user.create({
+            data: {
+              email: input.email,
+              name: input.name,
+              password: passwordHash,
+              organisation_id: organisation.id,
+            },
+          });
+
+          return { organisation, user };
+        });
       } catch (err: any) {
         lastError = err;
         // If unique constraint failed on oid collision, retry
@@ -132,7 +146,9 @@ export class AuthService {
   }
 
   async login(input: LoginInput): Promise<LoginResponseDTO> {
-    const user = await this.repo.findUserByEmail(input.email);
+    const user = await this.dbClient.user.findUnique({
+      where: { email: input.email },
+    });
     if (!user) {
       throw new AppError('Invalid email or password', 401);
     }
@@ -142,7 +158,9 @@ export class AuthService {
       throw new AppError('Invalid email or password', 401);
     }
 
-    const org = await this.repo.findOrganisationById(user.organisation_id);
+    const org = await this.dbClient.organisation.findUnique({
+      where: { id: user.organisation_id },
+    });
     if (!org) {
       throw new AppError('Organisation associated with user not found.', 404);
     }

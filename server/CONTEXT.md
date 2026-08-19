@@ -11,12 +11,13 @@
   - `@fastify/rate-limit`: Rate limiting middleware to prevent resource abuse.
   - `@fastify/cors`: Cross-Origin Resource Sharing control.
   - `@fastify/sensible`: Standardized HTTP utilities and status helpers.
+- Background Uptime Cron Runner (`src/workers/uptime-cron.ts`) is automatically started when the server starts up, running 60-second periodic monitoring checks with clean timer teardown on server shutdown (`onClose`).
 
 ## HTTP Client Seam
 - Outgoing HTTP monitoring checks and API webhooks use an Axios client adapter (`src/shared/http/axios-client.ts`) with predefined timeouts, custom headers, and error handling seams.
 
 ## Database Conventions
-- **PostgreSQL**: Handled via Prisma ORM with schema at `prisma/schema.prisma` and migrations at `prisma/migrations/`. Central DB pool and model delegates are exposed via `db` object in `src/infrastructure/db/postgres/client.ts`. Relational data (users, teams, monitors, incidents) are accessed through repository layers built on top of `db`.
+- **PostgreSQL**: Handled via Prisma ORM with schema at `prisma/schema.prisma` and migrations at `prisma/migrations/`. Central DB pool and singular model delegates (`db.user`, `db.organisation`, `db.monitor`, `db.incident`) are exposed via the `db` object in `src/infrastructure/db/postgres/client.ts`. Relational data is accessed directly inside Services via dependency injection (`constructor(private readonly dbClient = db)`), eliminating separate Repository layer classes (see ADR 0006).
 - **ClickHouse**: Handled via `src/infrastructure/db/clickhouse/client.ts`. High-speed time-series data (ping logs, telemetry metrics).
 - Local container services managed via `docker-compose.yml` (PostgreSQL 16, ClickHouse 24.3, Redis 7).
 

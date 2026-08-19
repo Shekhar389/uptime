@@ -12,6 +12,16 @@ enum OrganisationStatus {
   inactive
 }
 
+enum MonitorStatus {
+  up
+  down
+  degraded
+}
+
+enum MonitorType {
+  http
+}
+
 model Organisation {
   id          String             @id @default(uuid()) @db.Uuid
   name        String             @db.VarChar(255)
@@ -23,7 +33,8 @@ model Organisation {
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
   updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz
 
-  users User[]
+  users    User[]
+  monitors Monitor[]
 
   @@map("organisations")
 }
@@ -36,23 +47,27 @@ model User {
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
   updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz
 
-  organisation_id        String @db.Uuid
-  organisation Organisation @relation(fields: [organisation_id], references: [id])
+  organisation_id String       @db.Uuid
+  organisation    Organisation @relation(fields: [organisation_id], references: [id])
 
   @@map("users")
 }
 
 model Monitor {
-  id              String   @id @default(uuid()) @db.Uuid
-  teamId          String   @map("team_id") @db.Uuid
-  name            String   @db.VarChar(255)
-  url             String   @db.VarChar(1000)
-  intervalSeconds Int      @default(60) @map("interval_seconds")
-  status          String   @default("up") @db.VarChar(50)
-  createdAt       DateTime @default(now()) @map("created_at") @db.Timestamptz
-  updatedAt       DateTime @updatedAt @map("updated_at") @db.Timestamptz
+  id              String        @id @default(uuid()) @db.Uuid
+  organisationId  String        @map("organisation_id") @db.Uuid
+  name            String        @db.VarChar(255)
+  type            MonitorType   @default(http)
+  url             String        @db.VarChar(1000)
+  intervalSeconds Int           @default(300) @map("interval_seconds")
+  status          MonitorStatus @default(up)
+  consecutiveFails Int          @default(0) @map("consecutive_fails")
+  lastCheckedAt   DateTime?     @map("last_checked_at") @db.Timestamptz
+  createdAt       DateTime      @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt       DateTime      @updatedAt @map("updated_at") @db.Timestamptz
 
-  incidents Incident[]
+  organisation Organisation @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+  incidents    Incident[]
 
   @@map("monitors")
 }

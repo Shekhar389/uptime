@@ -6,7 +6,7 @@ const log = createComponentLogger('seed');
 async function seed() {
   log.info('Seeding PostgreSQL database...');
   try {
-    const org = await db.organisations.upsert({
+    const org = await db.organisation.upsert({
       where: { oid: 'org-acme-corp' },
       update: {},
       create: {
@@ -16,7 +16,7 @@ async function seed() {
       },
     });
 
-    await db.users.upsert({
+    await db.user.upsert({
       where: { email: 'dev@example.com' },
       update: {},
       create: {

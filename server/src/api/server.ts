@@ -16,6 +16,8 @@ import { incidentsRouter } from './routes/incidents.router.js';
 import { statusPagesRouter } from './routes/status-pages.router.js';
 import { logsRouter } from './routes/logs.router.js';
 
+import { startUptimeCron } from '../workers/uptime-cron.js';
+
 export async function buildServer() {
   const app = Fastify({
     loggerInstance: logger,
@@ -79,6 +81,16 @@ export async function buildServer() {
 async function start() {
   try {
     const app = await buildServer();
+
+    let cronTimer: NodeJS.Timeout | undefined;
+    app.addHook('onClose', async () => {
+      if (cronTimer) {
+        clearInterval(cronTimer);
+      }
+    });
+
+    cronTimer = startUptimeCron();
+
     await app.listen({ port: env.PORT, host: env.HOST });
     logger.info(`🚀 Fastify Server listening on http://${env.HOST}:${env.PORT}`);
     logger.info(`📚 Swagger API Docs available at http://${env.HOST}:${env.PORT}/docs`);

@@ -1,19 +1,20 @@
-export interface CreateMonitorInput {
-  teamId: string;
-  name: string;
-  url: string;
-  intervalSeconds?: number;
-}
+import {
+  MonitorTypeDTO,
+  MonitorStatusDTO,
+  CreateMonitorInputDTO,
+  CreateMonitorDTO,
+  MonitorDTO,
+  CheckResultDTO,
+} from './internal/dto.js';
 
-export interface MonitorDTO {
-  id: string;
-  teamId: string;
-  name: string;
-  url: string;
-  intervalSeconds: number;
-  status: 'up' | 'down' | 'degraded' | 'paused';
-  createdAt: Date;
-}
+export {
+  MonitorTypeDTO,
+  MonitorStatusDTO,
+  CreateMonitorInputDTO,
+  CreateMonitorDTO,
+  MonitorDTO,
+  CheckResultDTO,
+};
 
 export interface CheckResult {
   isUp: boolean;

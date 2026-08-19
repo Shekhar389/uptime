@@ -125,7 +125,7 @@ This document serves as the master blueprint for building a high-scale Better St
     │   │   │   ├── internal/                   # 🔒 Private implementation
     │   │   │   │   ├── checker.service.ts      # HTTP, SSL, DNS & TCP ping logic
     │   │   │   │   ├── latency-calc.ts         # Calculates 99.9% uptime SLA
-    │   │   │   │   └── monitor.repository.ts   # DB access for monitors
+    │   │   │   │   └── service.ts              # Uptime service (direct Prisma DB access)
     │   │   │   └── types.ts
     │   │   │
     │   │   ├── incidents/                      # Incidents & On-Call Domain
@@ -134,7 +134,7 @@ This document serves as the master blueprint for building a high-scale Better St
     │   │   │   ├── incident.validator.ts       # Zod validators for incidents
     │   │   │   └── internal/
     │   │   │       ├── escalation-engine.ts    # On-call rotation & escalation timer logic
-    │   │   │       └── incident.repository.ts
+    │   │   │       └── service.ts              # Incident service (direct Prisma DB access)
     │   │   │
     │   │   ├── status-pages/                   # Status Pages Domain
     │   │   │   ├── CONTEXT.md                  # 📍 Status pages glossary & invariants

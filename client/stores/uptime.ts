@@ -4,53 +4,20 @@ import { useApiClient } from '~/composables/useApiClient';
 
 export interface Monitor {
   id: string;
+  organisationId?: string;
   name: string;
+  type?: 'http';
   url: string;
   intervalSeconds: number;
   status: 'up' | 'down' | 'degraded';
   lastCheckedAt?: string;
   latencyMs?: number;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export const useUptimeStore = defineStore('uptime', () => {
-  const monitors = ref<Monitor[]>([
-    {
-      id: 'mon-1',
-      name: 'Primary API Gateway',
-      url: 'https://api.acme.com/health',
-      intervalSeconds: 30,
-      status: 'up',
-      latencyMs: 42,
-      lastCheckedAt: 'Just now',
-    },
-    {
-      id: 'mon-2',
-      name: 'Customer Dashboard',
-      url: 'https://app.acme.com',
-      intervalSeconds: 60,
-      status: 'up',
-      latencyMs: 115,
-      lastCheckedAt: '1 min ago',
-    },
-    {
-      id: 'mon-3',
-      name: 'Auth Microservice',
-      url: 'https://auth.acme.com/ping',
-      intervalSeconds: 15,
-      status: 'degraded',
-      latencyMs: 480,
-      lastCheckedAt: 'Just now',
-    },
-    {
-      id: 'mon-4',
-      name: 'Payment Webhook Listener',
-      url: 'https://pay.acme.com/webhooks',
-      intervalSeconds: 60,
-      status: 'down',
-      latencyMs: 0,
-      lastCheckedAt: '2 mins ago',
-    },
-  ]);
+  const monitors = ref<Monitor[]>([]);
   const filter = ref<'all' | 'up' | 'down'>('all');
   const selectedMonitorId = ref<string | null>(null);
   const loading = ref(false);
@@ -65,12 +32,35 @@ export const useUptimeStore = defineStore('uptime', () => {
     error.value = null;
     try {
       const api = useApiClient();
-      const data = await api<Monitor[]>('/monitors');
-      if (Array.isArray(data)) {
-        monitors.value = data;
+      const res = await api<{ data: Monitor[] } | Monitor[]>('/monitors');
+      const list = Array.isArray(res) ? res : res?.data;
+      if (Array.isArray(list)) {
+        monitors.value = list;
       }
     } catch (err: any) {
       error.value = err.message || 'Failed to fetch monitors';
+    } finally {
+      loading.value = false;
+    }
+  }
+
+  async function createMonitor(input: { name: string; url: string; intervalSeconds?: number; type?: 'http' }) {
+    loading.value = true;
+    error.value = null;
+    try {
+      const api = useApiClient();
+      const res = await api<{ data: Monitor } | Monitor>('/monitors', {
+        method: 'POST',
+        body: input,
+      });
+      const created = (res as any)?.data || res;
+      if (created && created.id) {
+        monitors.value.unshift(created);
+      }
+      return created;
+    } catch (err: any) {
+      error.value = err.message || 'Failed to create monitor';
+      throw err;
     } finally {
       loading.value = false;
     }
@@ -118,6 +108,7 @@ export const useUptimeStore = defineStore('uptime', () => {
     totalDegraded,
     totalDown,
     fetchMonitors,
+    createMonitor,
     setMonitors,
     addMonitor,
     updateMonitor,

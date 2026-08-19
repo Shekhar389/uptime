@@ -5,9 +5,9 @@ export const createMonitorSchema = z.object({
   url: z.string().url('Must be a valid HTTP or HTTPS URL'),
   intervalSeconds: z
     .number({ invalid_type_error: 'Interval must be a number' })
-    .min(10, 'Minimum check interval is 10 seconds')
+    .min(180, 'Minimum check interval is 180 seconds (3 minutes)')
     .max(3600, 'Maximum check interval is 3600 seconds'),
-  status: z.enum(['up', 'down', 'degraded']),
+  type: z.enum(['http']).default('http'),
 });
 
 export type CreateMonitorInput = z.infer<typeof createMonitorSchema>;

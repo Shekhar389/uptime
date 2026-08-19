@@ -11,7 +11,7 @@
 ## State & API Conventions
 - **Global App State**: Managed via **Pinia** stores (`stores/{auth, uptime, incidents, billing}.ts`) with Nuxt auto-imports. `stores/auth.ts` initializes in an unauthenticated state (`isAuthenticated = false`) by default and hydratessession state (token, user, organization) from `localStorage` on client init.
 - **API Client Seam**: Centralized `$fetch` wrapper composable (`composables/useApiClient.ts`) with request interceptors for injecting `Authorization: Bearer <token>` and `X-Organisation-ID` / `X-Team-ID` headers, and response interceptors for error handling.
-- **Form & Validation Seams**: Nuxt UI `<UForm>` + **Zod** schema validation (`utils/schemas/*.ts` or feature schemas) with native `<UForm :schema="schema">`.
+- **Form & Validation Seams**: Nuxt UI `<UForm>` + **Zod** schema validation (`utils/schemas/*.ts` or feature schemas) with native `<UForm :schema="schema">`. `createMonitorSchema` enforces server domain invariants (minimum 180-second ping interval, `type: 'http'`, auto-assigned `'up'` status).
 - **Domain Modeling**: Primary workspace entity is `Organisation` (`organisationId`, `oid`), represented in `stores/auth.ts` and user signup form.
 
 ## Directory Isolation & Deep Modules

@@ -9,21 +9,23 @@ describe('Pinia Auth Store', () => {
 
   it('initializes with default state', () => {
     const authStore = useAuthStore();
-    expect(authStore.isAuthenticated).toBe(true);
-    expect(authStore.user?.email).toBe('dev@example.com');
-    expect(authStore.team?.name).toBe('Acme Corp');
+    expect(authStore.isAuthenticated).toBe(false);
+    expect(authStore.user).toBeNull();
+    expect(authStore.organisation).toBeNull();
+    expect(authStore.team).toBeNull();
+    expect(authStore.token).toBeNull();
   });
 
-  it('updates state on setAuth action', () => {
+  it('updates state on setAuth action with organisation', () => {
     const authStore = useAuthStore();
     const user = { id: 'usr-99', name: 'Alice', email: 'alice@example.com' };
-    const team = { id: 'team-99', name: 'Dev Ops' };
+    const organisation = { id: 'org-99', name: 'Acme Corp', oid: 'acme-99' };
 
-    authStore.setAuth({ user, team, token: 'secret-token' });
+    authStore.setAuth({ user, organisation, token: 'secret-token' });
 
     expect(authStore.isAuthenticated).toBe(true);
     expect(authStore.user).toEqual(user);
-    expect(authStore.team).toEqual(team);
+    expect(authStore.organisation).toEqual(organisation);
     expect(authStore.token).toBe('secret-token');
   });
 
@@ -33,7 +35,7 @@ describe('Pinia Auth Store', () => {
 
     expect(authStore.isAuthenticated).toBe(false);
     expect(authStore.user).toBeNull();
-    expect(authStore.team).toBeNull();
+    expect(authStore.organisation).toBeNull();
     expect(authStore.token).toBeNull();
   });
 });

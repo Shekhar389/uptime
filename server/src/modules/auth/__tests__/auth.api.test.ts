@@ -43,3 +43,30 @@ describe('POST /api/v1/auth/signup', () => {
     expect(body.error).toContain('Validation error');
   });
 });
+
+describe('POST /api/v1/auth/login', () => {
+  let app: any;
+
+  beforeAll(async () => {
+    app = await buildServer();
+  });
+
+  afterAll(async () => {
+    await app.close();
+  });
+
+  it('should return 400 Bad Request when login request payload fails validation', async () => {
+    const response = await app.inject({
+      method: 'POST',
+      url: '/api/v1/auth/login',
+      payload: {
+        email: 'not-an-email',
+        password: '',
+      },
+    });
+
+    expect(response.statusCode).toBe(400);
+    const body = JSON.parse(response.payload);
+    expect(body.error).toBeDefined();
+  });
+});

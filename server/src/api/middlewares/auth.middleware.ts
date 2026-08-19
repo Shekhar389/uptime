@@ -1,11 +1,25 @@
 import { FastifyReply, FastifyRequest } from 'fastify';
-import { ForbiddenError } from '../../shared/errors/forbidden.error.js';
+import { AppError } from '../../shared/errors/app-error.js';
+import { env } from '../../config/env.js';
+import { verifyJwt } from '../../modules/auth/index.js';
 
 export async function authMiddleware(request: FastifyRequest, _reply: FastifyReply) {
   const authHeader = request.headers.authorization;
-  if (!authHeader && process.env.NODE_ENV === 'production') {
-    throw new ForbiddenError('Missing authorization header');
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    throw new AppError('Missing or malformed authorization header', 401);
   }
-  // Attach mock teamId if not present for development
-  (request as any).teamId = (request.headers['x-team-id'] as string) || '00000000-0000-0000-0000-000000000001';
+
+  const token = authHeader.substring(7);
+  const payload = verifyJwt(token, env.JWT_SECRET);
+
+  if (!payload || !payload.userId || !payload.organisationId) {
+    throw new AppError('Invalid or expired authentication token', 401);
+  }
+
+  (request as any).user = {
+    id: payload.userId as string,
+    organisationId: payload.organisationId as string,
+  };
+  (request as any).organisationId = payload.organisationId as string;
+  (request as any).teamId = payload.organisationId as string;
 }

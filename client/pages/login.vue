@@ -12,7 +12,7 @@
     </div>
 
     <!-- Nuxt UI Card Login Form -->
-    <UCard class="bg-zinc-900 border-zinc-800 text-zinc-100 shadow-2xl">
+    <UCard>
       <template #header>
         <div class="space-y-1 text-center pb-2">
           <h2 class="text-xl font-bold tracking-tight text-white">Sign in to account</h2>
@@ -28,7 +28,6 @@
             v-model="state.email"
             type="email"
             placeholder="name@company.com"
-            class="bg-zinc-950 border-zinc-800 text-zinc-100"
           />
         </UFormGroup>
 
@@ -42,7 +41,6 @@
             v-model="state.password"
             type="password"
             placeholder="••••••••"
-            class="bg-zinc-950 border-zinc-800 text-zinc-100"
           />
         </UFormGroup>
 
@@ -50,13 +48,24 @@
           <UButton
             type="submit"
             block
-            class="bg-zinc-100 text-zinc-950 hover:bg-zinc-200 font-bold gap-2 py-3 shadow-lg"
+            color="white"
+            variant="solid"
+            :loading="loading"
+            class="bg-zinc-100 hover:bg-white text-zinc-950 font-bold gap-2 py-3 shadow-lg justify-center flex items-center"
           >
             Sign In <UIcon name="i-heroicons-arrow-right" class="w-4 h-4" />
           </UButton>
         </div>
       </UForm>
     </UCard>
+
+    <!-- Navigation link to register -->
+    <div class="text-center text-xs text-zinc-400">
+      Don't have an account?
+      <NuxtLink to="/register" class="text-zinc-100 hover:underline font-semibold ml-1">
+        Create an account
+      </NuxtLink>
+    </div>
 
     <!-- Footer info -->
     <div class="flex items-center justify-center gap-2 text-xs text-zinc-500">
@@ -67,8 +76,10 @@
 </template>
 
 <script setup lang="ts">
+import { ref, reactive } from 'vue';
 import { loginSchema } from '~/utils/schemas/auth';
 import { useAuthStore } from '~/stores/auth';
+import { useApiClient } from '~/composables/useApiClient';
 
 definePageMeta({
   layout: 'auth',
@@ -76,18 +87,50 @@ definePageMeta({
 
 const authStore = useAuthStore();
 const router = useRouter();
+const route = useRoute();
+const api = useApiClient();
+const toast = useToast();
+
+const loading = ref(false);
 
 const state = reactive({
-  email: 'dev@example.com',
-  password: 'password123',
+  email: '',
+  password: '',
 });
 
-const onSubmit = () => {
-  authStore.setAuth({
-    user: { id: 'usr-1', name: 'Dev Engineer', email: state.email },
-    team: { id: '00000000-0000-0000-0000-000000000001', name: 'Acme Corp' },
-    token: 'dev-session-token',
-  });
-  router.push('/');
+const onSubmit = async () => {
+  loading.value = true;
+  try {
+    const response = await api<any>('/auth/login', {
+      method: 'POST',
+      body: {
+        email: state.email,
+        password: state.password,
+      },
+    });
+
+    authStore.setAuth({
+      user: response.user,
+      organisation: response.organisation,
+      token: response.token,
+    });
+
+    toast.add({
+      title: 'Welcome Back',
+      description: `Signed in successfully as ${response.user?.name || response.user?.email || state.email}`,
+      color: 'green',
+    });
+
+    const targetPath = (route.query.redirect as string) || '/';
+    router.push(targetPath);
+  } catch (err: any) {
+    toast.add({
+      title: 'Login Failed',
+      description: err.message || 'Invalid email or password.',
+      color: 'red',
+    });
+  } finally {
+    loading.value = false;
+  }
 };
 </script>

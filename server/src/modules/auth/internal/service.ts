@@ -1,14 +1,15 @@
 import { AppError } from '../../../shared/errors/app-error.js';
 import { env } from '../../../config/env.js';
 import { IAuthRepository, PrismaAuthRepository } from './repository.js';
-import { SignupInput } from './schemas.js';
-import { SignupResponseDTO } from './dto.js';
-import { hashPassword, signJwt } from './utils/crypto.js';
+import { SignupInput, LoginInput } from './schemas.js';
+import { SignupResponseDTO, LoginResponseDTO } from './dto.js';
+import { hashPassword, comparePassword, signJwt } from './utils/crypto.js';
 import { generateOid } from './utils/oid-generator.js';
 
 export type UserResponse = SignupResponseDTO['user'];
 export type OrganisationResponse = SignupResponseDTO['organisation'];
 export type SignupResult = SignupResponseDTO;
+export type LoginResult = LoginResponseDTO;
 
 export class AuthService {
   constructor(private readonly repo: IAuthRepository = new PrismaAuthRepository()) {}
@@ -105,6 +106,51 @@ export class AuthService {
     }
 
     const { organisation: org, user } = createdResult;
+    const token = signJwt(
+      { userId: user.id, organisationId: org.id },
+      env.JWT_SECRET
+    );
+
+    return {
+      user: {
+        id: user.id,
+        email: user.email,
+        name: user.name,
+        organisationId: user.organisation_id,
+        createdAt: user.createdAt,
+      },
+      organisation: {
+        id: org.id,
+        name: org.name,
+        logo: org.logo,
+        description: org.description,
+        oid: org.oid,
+        status: org.status,
+      },
+      token,
+    };
+  }
+
+  async login(input: LoginInput): Promise<LoginResponseDTO> {
+    const user = await this.repo.findUserByEmail(input.email);
+    if (!user) {
+      throw new AppError('Invalid email or password', 401);
+    }
+
+    const isValidPassword = comparePassword(input.password, user.password);
+    if (!isValidPassword) {
+      throw new AppError('Invalid email or password', 401);
+    }
+
+    const org = await this.repo.findOrganisationById(user.organisation_id);
+    if (!org) {
+      throw new AppError('Organisation associated with user not found.', 404);
+    }
+
+    if (org.status === 'inactive') {
+      throw new AppError('Organisation is inactive.', 403);
+    }
+
     const token = signJwt(
       { userId: user.id, organisationId: org.id },
       env.JWT_SECRET

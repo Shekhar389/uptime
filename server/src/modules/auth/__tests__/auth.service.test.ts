@@ -1,7 +1,7 @@
 import { AuthService } from '../internal/service.js';
 import { IAuthRepository } from '../internal/repository.js';
 import { AppError } from '../../../shared/errors/app-error.js';
-import { verifyJwt } from '../internal/utils/crypto.js';
+import { hashPassword, verifyJwt } from '../internal/utils/crypto.js';
 import { env } from '../../../config/env.js';
 
 describe('AuthService', () => {
@@ -12,6 +12,7 @@ describe('AuthService', () => {
     mockRepo = {
       findUserByEmail: jest.fn(),
       findOrganisationByOid: jest.fn(),
+      findOrganisationById: jest.fn(),
       createUser: jest.fn(),
       createOrgAndUser: jest.fn(),
     };
@@ -183,6 +184,117 @@ describe('AuthService', () => {
           name: 'Alice Founder',
         })
       );
+    });
+  });
+
+  describe('login', () => {
+    it('should successfully authenticate user with valid credentials and active organisation', async () => {
+      const password = 'mysecretpassword123';
+      const passwordHash = hashPassword(password);
+
+      const mockUser = {
+        id: 'user-uuid-10',
+        email: 'member@acme.com',
+        name: 'Jane Member',
+        password: passwordHash,
+        organisation_id: 'org-uuid-10',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
+
+      const mockOrg = {
+        id: 'org-uuid-10',
+        name: 'Acme Corp',
+        logo: null,
+        description: null,
+        oid: 'acme-10',
+        status: 'active' as const,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
+
+      mockRepo.findUserByEmail.mockResolvedValue(mockUser);
+      mockRepo.findOrganisationById.mockResolvedValue(mockOrg);
+
+      const result = await authService.login({
+        email: 'member@acme.com',
+        password,
+      });
+
+      expect(result.user.email).toBe('member@acme.com');
+      expect(result.organisation.id).toBe('org-uuid-10');
+      expect(result.token).toBeDefined();
+
+      const decoded = verifyJwt(result.token, env.JWT_SECRET);
+      expect(decoded).toMatchObject({
+        userId: 'user-uuid-10',
+        organisationId: 'org-uuid-10',
+      });
+    });
+
+    it('should throw 401 error if user email does not exist', async () => {
+      mockRepo.findUserByEmail.mockResolvedValue(null);
+
+      await expect(
+        authService.login({
+          email: 'nonexistent@acme.com',
+          password: 'anypassword',
+        })
+      ).rejects.toThrow(new AppError('Invalid email or password', 401));
+    });
+
+    it('should throw 401 error if password is incorrect', async () => {
+      const passwordHash = hashPassword('correctpassword');
+
+      mockRepo.findUserByEmail.mockResolvedValue({
+        id: 'user-1',
+        email: 'user@acme.com',
+        name: 'User',
+        password: passwordHash,
+        organisation_id: 'org-1',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      });
+
+      await expect(
+        authService.login({
+          email: 'user@acme.com',
+          password: 'wrongpassword',
+        })
+      ).rejects.toThrow(new AppError('Invalid email or password', 401));
+    });
+
+    it('should throw 403 error if user organisation is inactive', async () => {
+      const password = 'validpassword';
+      const passwordHash = hashPassword(password);
+
+      mockRepo.findUserByEmail.mockResolvedValue({
+        id: 'user-1',
+        email: 'user@inactive.com',
+        name: 'User',
+        password: passwordHash,
+        organisation_id: 'org-inactive',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      });
+
+      mockRepo.findOrganisationById.mockResolvedValue({
+        id: 'org-inactive',
+        name: 'Inactive Corp',
+        logo: null,
+        description: null,
+        oid: 'inactive-1',
+        status: 'inactive',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      });
+
+      await expect(
+        authService.login({
+          email: 'user@inactive.com',
+          password,
+        })
+      ).rejects.toThrow(new AppError('Organisation is inactive.', 403));
     });
   });
 });
